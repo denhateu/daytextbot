@@ -1,4 +1,4 @@
-from os import getenv
+import os
 import sys
 import logging
 import asyncio
@@ -11,8 +11,8 @@ import speech_recognition as sr
 from pydub import AudioSegment
 
 
-TOKEN = getenv("TOKEN")
-print(TOKEN)
+# Gets token from environment
+TOKEN = os.getenv("TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
@@ -26,18 +26,24 @@ async def command_start_handler(message: Message):
 @dp.message(F.voice)
 async def handle_voice(message: Message):
     voice_file_id = message.voice.file_id
+    source_voice_file_name = f"{voice_file_id}.ogg"
+    voice_file_name_for_recognize = f"{voice_file_id}.wav"
 
-    # Downloading file
+    # Downloading voice file
     voice_file: File = await bot.get_file(voice_file_id)
-    await bot.download_file(voice_file.file_path, f"{voice_file_id}.ogg")
+    await bot.download_file(voice_file.file_path, source_voice_file_name)
 
     # Converting ogg to wav
-    audio_ogg = AudioSegment.from_file(f"{voice_file_id}.ogg", format="ogg")
-    audio_ogg.export(f"{voice_file_id}.wav", format="wav")
+    audio_ogg = AudioSegment.from_file(source_voice_file_name, format="ogg")
+    audio_ogg.export(voice_file_name_for_recognize, format="wav")
+
+    # Removing source voice file
+    os.remove(source_voice_file_name)
 
     recognizer = sr.Recognizer()
 
-    with sr.AudioFile(f"{voice_file_id}.wav") as audio_file:
+    # Gets audio from converted voice file
+    with sr.AudioFile(voice_file_name_for_recognize) as audio_file:
         audio = recognizer.record(audio_file)
 
     # Trying to translate speech to text
