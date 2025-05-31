@@ -1,21 +1,61 @@
+from os import getenv
+import sys
+import logging
+import asyncio
+from aiogram import F
+from aiogram import Bot, Dispatcher
+from aiogram.filters import CommandStart
+from aiogram.types import Message
+from aiogram.types.file import File
 import speech_recognition as sr
+from pydub import AudioSegment
 
 
-def main():
+TOKEN = getenv("TOKEN")
+print(TOKEN)
+
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
+
+
+@dp.message(CommandStart())
+async def command_start_handler(message: Message):
+    await message.answer("Соси")
+
+
+@dp.message(F.voice)
+async def handle_voice(message: Message):
+    voice_file_id = message.voice.file_id
+
+    # Downloading file
+    voice_file: File = await bot.get_file(voice_file_id)
+    await bot.download_file(voice_file.file_path, f"{voice_file_id}.ogg")
+
+    # Converting ogg to wav
+    audio_ogg = AudioSegment.from_file(f"{voice_file_id}.ogg", format="ogg")
+    audio_ogg.export(f"{voice_file_id}.wav", format="wav")
+
     recognizer = sr.Recognizer()
 
-    with sr.AudioFile("test2.wav") as audio_file:
+    with sr.AudioFile(f"{voice_file_id}.wav") as audio_file:
         audio = recognizer.record(audio_file)
 
     # Trying to translate speech to text
     try:
         text = recognizer.recognize_google(audio, language="ru-RU")
-        print(f"Распознано: {text}")
+        answer = text
     except sr.UnknownValueError:
-        print("Не удалось распознать речь")
+        answer = "Не удалось распознать речь"
     except sr.RequestError as e:
-        print(f"Ошибка: {e}")
+        answer = f"Ошибка: {e}"
+
+    await message.answer(answer)
+
+
+async def main():
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    main()
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    asyncio.run(main())
