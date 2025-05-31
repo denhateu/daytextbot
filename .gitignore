@@ -11,3 +11,6 @@ wheels/
 
 # Sublime text files
 *.sublime-*
+
+# Other files
+*.wav
