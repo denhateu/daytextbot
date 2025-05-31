@@ -26,24 +26,33 @@ async def command_start_handler(message: Message):
 @dp.message(F.voice)
 async def handle_voice(message: Message):
     voice_file_id = message.voice.file_id
+
+    # Creates directory for voices if not exists
+    voices_dir = "voices\\"
+    if not os.path.exists(voices_dir):
+        os.mkdir(voices_dir)
+
     source_voice_file_name = f"{voice_file_id}.ogg"
+    source_voice_path = f"{voices_dir}{source_voice_file_name}"
+
     voice_file_name_for_recognize = f"{voice_file_id}.wav"
+    recognize_voice_path = f"{voices_dir}{voice_file_name_for_recognize}"
 
     # Downloading voice file
     voice_file: File = await bot.get_file(voice_file_id)
-    await bot.download_file(voice_file.file_path, source_voice_file_name)
+    await bot.download_file(voice_file.file_path, source_voice_path)
 
     # Converting ogg to wav
-    audio_ogg = AudioSegment.from_file(source_voice_file_name, format="ogg")
-    audio_ogg.export(voice_file_name_for_recognize, format="wav")
+    audio_ogg = AudioSegment.from_file(source_voice_path, format="ogg")
+    audio_ogg.export(recognize_voice_path, format="wav")
 
     # Removing source voice file
-    os.remove(source_voice_file_name)
+    os.remove(source_voice_path)
 
     recognizer = sr.Recognizer()
 
     # Gets audio from converted voice file
-    with sr.AudioFile(voice_file_name_for_recognize) as audio_file:
+    with sr.AudioFile(recognize_voice_path) as audio_file:
         audio = recognizer.record(audio_file)
 
     # Trying to translate speech to text
