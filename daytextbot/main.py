@@ -20,7 +20,7 @@ dp = Dispatcher()
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message):
-    await message.answer("Соси")
+    await message.answer("Мне лень че то сюда писать, поэтому просто привет!")
 
 
 @dp.message(F.voice)
@@ -60,11 +60,16 @@ async def handle_voice(message: Message):
         text = recognizer.recognize_google(audio, language="ru-RU")
         answer = text
     except sr.UnknownValueError:
-        answer = "Не удалось распознать речь"
+        answer = "я вообще ничего не понял че там за бормотание в гс"
     except sr.RequestError as e:
-        answer = f"Ошибка: {e}"
+        answer = f"какая-то херотень: {e}"
 
     await message.answer(answer)
+
+
+@dp.message()
+async def other_messages_handler(message: Message):
+    await message.answer("а ничо тот факт что мне можно отправлять только голосовые?🙄🙄🙄")
 
 
 async def main():
