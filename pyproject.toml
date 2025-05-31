@@ -7,5 +7,6 @@ requires-python = ">=3.10"
 dependencies = [
     "aiogram>=3.20.0.post0",
     "asyncio>=3.4.3",
+    "pydub>=0.25.1",
     "speechrecognition>=3.14.3",
 ]
